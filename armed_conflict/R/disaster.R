@@ -10,6 +10,8 @@ dat <- dplyr::filter(dat, (year >= 2000 & year <= 2019) & (Disaster.Type == "Ear
 dat_sub <- dat %>% select(year, ISO, Disaster.Type)
 dat_sub$Drought <- ifelse(dat_sub$Disaster.Type == "Drought", 1, 0)
 dat_sub$Earthquake <- ifelse(dat_sub$Disaster.Type == "Earthquake", 1, 0)
+dat_sub$Drought[is.na(dat_sub$Drought)] <- 0
+dat_sub$Earthquake[is.na(dat_sub$Earthquake)] <- 0
 
 # Grouping the data by country and year
 dat_group <- dat_sub %>% group_by(year, ISO) %>% summarize(Drought = max(Drought), Earthquake = max(Earthquake))

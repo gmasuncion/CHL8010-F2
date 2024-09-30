@@ -1,0 +1,112 @@
+---
+title: "CHL8010: Armed Conflict - Exploratory Data Analysis"
+author: "Mark Asuncion"
+date: "2024-09-30"
+format: 
+  pdf:
+    number-sections: true  # Number the sections
+    margin-left: 1in    # Adjust margins as needed
+    margin-right: 1in
+    margin-top: 1in
+    margin-bottom: 1in
+    keep-tex: true      # Keep the intermediate .tex file for inspection
+fontsize: 11pt          # Set the font size
+geometry: "a4paper"     # Paper size (adjust if needed)
+---
+
+```{r, include=FALSE}
+options(warn = -1)
+library(here)
+library(tidyverse)
+library(cowplot)
+library(ggplot2)
+finaldata <- read.csv(here("original", "primary_data.csv"), row.names = NULL)
+```
+
+This file serves to document the exploratory data analysis for the merged data that
+was compiled last week.
+
+# Viewing the Data
+Using `head()` and `tail()` gives us the data for the first/last countries
+```{r, echo=TRUE}
+head(finaldata, 20)
+tail(finaldata, 20)
+```
+From first glance, one prominent feature of the data is that several variables
+have missing values - which gives us an idea of what to explore first when the
+time comes to deal with this. Moreover we can confirm that the values are conforming
+to what they should be by defintion. We also can confirm that the columns we 
+created for the disaster/conflict data have had their NA values imputed with 0s
+respectively.
+
+# Gathering Summary Statistics
+For the numerical variables, we will be looking at their summary statistics and 
+checking to see if the removal of certain data points (or countries) leads to a 
+drastic change. First we can check the overall summary statistics:
+```{r, echo=TRUE}
+# Capturing all numerical variables
+numeric_dat <- finaldata[sapply(finaldata, is.numeric)]
+print(summary(numeric_dat))
+```
+Next we can look at certain countries like Canada, for example:
+```{r, echo=TRUE}
+# Capturing all numerical variables for Canada
+canada_dat <- subset(finaldata, country_name == "Canada")
+numeric_dat <- canada_dat[sapply(canada_dat, is.numeric)]
+print(summary(numeric_dat))
+```
+One thing we can explore is the distribution of the total number of conflicts 
+per year, from there we can look further at the countries on the extremes.
+```{r, echo=TRUE}
+years = unique(finaldata$year)
+for (y in years) {
+  dat <- subset(finaldata, year == y)
+  print(sprintf("Summary of total conflicts for year %d", y))
+  print(summary(dat$conflict))
+}
+```
+Comparing to the overall summary, we can see that 2015 is where the max number
+of conflicts occurred (the minimum occurs across several years). Further we can
+match this to the country, specifically this occurred in Syria.
+
+```{r, echo=TRUE}
+subset(finaldata, conflict >= 78000) # The max number of conflicts happened in Syria during 2015
+```
+
+# Data Visualization
+In this section we aim to explore any relationships between variables by using 
+different visuals. Given the most number of deaths occurred in Syria, let's 
+visualize any trends in this country over the years.
+```{r, echo=TRUE}
+countries <- unique(finaldata$country_name)
+data = subset(finaldata, country_name == "Syria")
+
+# Number of Conflicts vs Year in Syria
+ggplot(data, aes(x = year, y = conflict)) +
+      geom_line(color = "blue") + 
+      geom_point(color = "red") + 
+      labs(title = "Conflict in Syria over the years", x = "Year", 
+           y = "Total Number of Conflicts") 
+
+# Reshape the data to long format
+syria = subset(finaldata, country_name == "Syria")
+data_long <- syria %>%
+  pivot_longer(cols = c(MatMor, InfMor, Und5Mor, NeoMor), 
+               names_to = "MortalityType", 
+               values_to = "Rate")
+
+# Create the plot
+ggplot(data_long, aes(x = year, y = Rate, color = MortalityType)) +
+      geom_line() +
+      geom_point() + 
+      labs(title = "Mortality Rates in Syria over the years", 
+           x = "Year", 
+           y = "Mortality Rate") +
+      scale_color_manual(values = c("MatMor" = "blue", 
+                                      "InfMor" = "red", 
+                                      "Und5Mor" = "green", 
+                                      "NeoMor" = "orange"))
+```
+These two plots align with each other in the fact that their maximums occur around
+2015, which is expected. When there was a higher number of conflicts, the mortality
+rates (perhaps excluding neonatal) also obtained their max values in Syria.
