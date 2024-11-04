@@ -1,4 +1,7 @@
+library("here")
 library("table1")
+library(tidyverse)
+
 finaldata <- read.csv(here("original", "primary_data.csv"), header = TRUE)
 
 # Grouping the data into bins
