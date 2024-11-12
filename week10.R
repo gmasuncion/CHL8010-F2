@@ -42,3 +42,4 @@ for (j in 1:3){
   results_unadj[j] <- mean(type1_err_unadj)
   results_adj[j] <- mean(type1_err_adj)
 }
+kable(cbind(alpha1,results_adj, results_unadj))

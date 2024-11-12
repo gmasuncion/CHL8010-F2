@@ -1,0 +1,72 @@
+---
+title: "CHL 8010: Week 10"
+output: pdf_document
+author: "Mark Asuncion"
+date: "`r Sys.Date()`"
+---
+  
+## Set Simulation Parameters
+
+```{r setup, include=TRUE}
+# Setting up necessary parameters and libraries
+library(kableExtra)
+# Number of simulations
+m <- 1000 
+alpha1 <- 0:2
+results_unadj = numeric(3)
+results_adj = numeric(3)
+
+for (j in 1:3) {
+  type1_err_unadj = numeric(m)
+  type1_err_adj = numeric(m)
+  
+  for (i in 1:m) {
+    set.seed(2024 + i)
+    alpha <- 0.05
+    n <- 500 # Sample size
+    pz <- 0.2 # Probability of Z = 1
+    alpha0 <- 0 # Logit probability of x = 1 in non-smokers (z = 0)
+    alpha2 <- 2
+    beta0 <- -3 # Logit prob of y = 1 in non-coffee drinkers (x = 0) and non-smokers (z = 0)
+    beta1 <- 0
+    beta2 <- 2
+
+    # Generate confounder Z from a binomial distribution
+    z <- rbinom(n, size = 1, prob = pz)
+
+    # Compute probability of observing X = 1 from the inverse logit function
+    px <- exp(alpha0 + alpha1[j] * z) / (1 + exp(alpha0 + alpha1[j] * z))
+    
+    # Randomly generate binary variable X from the above probability
+    x <- rbinom(n, size = 1, prob = px)
+
+    # Randomly generate binary variable Y from the inverse logistic function
+    py <- exp(beta0 + beta1 * x + beta2 * z) / (1 + exp(beta0 + beta1 * x + beta2 * z))
+    y <- rbinom(n, size = 1, prob = py)
+    
+    # Combine three random variables into a data frame
+    dat <- data.frame(lung = y, coffee = x, smoke = z)
+
+    # Fit unadjusted logistic regression model
+    unadj.mod <- glm(lung ~ coffee, data = dat, family = "binomial")
+    unadj.coef <- summary(unadj.mod)$coef
+    unadj_p <- unadj.coef[2, 4]
+    
+    # Fit adjusted logistic regression model
+    adj.mod <- glm(lung ~ coffee + smoke, data = dat, family = "binomial")
+    adj.coef <- summary(adj.mod)$coef
+    adj_p <- adj.coef[2, 4]
+    
+    # Record type 1 error rates
+    type1_err_unadj[i] <- as.numeric(unadj_p < alpha)
+    type1_err_adj[i] <- as.numeric(adj_p < alpha)
+  }
+
+  # Store results
+  results_unadj[j] <- mean(type1_err_unadj)
+  results_adj[j] <- mean(type1_err_adj)
+}
+
+# Final results for type 1 error
+kable(cbind(alpha1,results_adj, results_unadj))
+```
