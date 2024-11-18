@@ -1,8 +1,6 @@
 library(here)
 library(boot)
 
-set.seed(2024)
-
 finaldata <- read.csv(here("original", "primary_data.csv"), header = TRUE)
 
 data2017inf <- finaldata |>
@@ -36,8 +34,11 @@ getmeddiff_neo <- function(data, indices) {
   return(meddiff)
 }
 
+set.seed(2024)
 bootout_inf <- boot(data2017inf, statistic = getmeddiff_inf, strata = data2017inf$armedconf, R = 1000)
+set.seed(2024)
 bootout_und5 <- boot(data2017und5, statistic = getmeddiff_und5, strata = data2017und5$armedconf, R = 1000)
+set.seed(2024)
 bootout_neo <- boot(data2017neo, statistic = getmeddiff_neo, strata = data2017neo$armedconf, R = 1000)
 
 boot.ci(boot.out = bootout_inf, conf = 0.95, type = c("basic", "perc", "bca"))
