@@ -15,19 +15,6 @@ data2017neo <- finaldata |>
   dplyr::filter(year == 2017) |>
   dplyr::filter(!is.na(NeoMor)) 
 
-data2017inf |>
-  group_by(armedconf) |>
-  summarise(n = n(),
-            median.infmor = median(InfMor, na.rm = T))
-data2017und5 |>
-  group_by(armedconf) |>
-  summarise(n = n(),
-            median.infmor = median(Und5Mor, na.rm = T))
-data2017neo |>
-  group_by(armedconf) |>
-  summarise(n = n(),
-            median.infmor = median(NeoMor, na.rm = T))
-
 getmeddiff_inf <- function(data, indices) {
   sample_data <- data[indices, ]
   group_meds <- tapply(sample_data$InfMor, sample_data$armedconf, FUN = function(x) median(x,na.rm=TRUE))
