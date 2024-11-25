@@ -1,6 +1,7 @@
 library(here)
 library(mice)
-
+library(htmlreg)
+library(tidyverse)
 finaldata <- read.csv(here("original", "primary_data.csv"), header = TRUE)
 finaldata['gdp1000_log'] = log(finaldata["gdp1000"])
 finaldata['pctpopdens'] = finaldata['popdens']/100
@@ -34,7 +35,7 @@ meth[c("urban", "male_edu", "temp", "rainfall1000", "MatMor", "InfMor", "NeoMor"
 pred <- mice0$predictorMatrix
 pred[c("urban", "male_edu", "temp", "rainfall1000", "MatMor", "InfMor", "NeoMor", "Und5Mor", "gdp1000_log", "pctpopdens"), "ISOnum"] <- -2
 
-mice.multi.out  <- mice(midata, seed = 100, m = 10, maxit = 20,
+mice.multi.out  <- mice(midata, seed = 100, m = 3, maxit = 10,
                         method = meth,
                         predictorMatrix = pred)
 plot(mice.multi.out)
